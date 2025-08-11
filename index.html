@@ -43,8 +43,7 @@
   <label for="password">كلمة المرور:</label>
   <input type="password" id="password" placeholder="أدخل كلمة المرور" />
 
-  <button id="saveRouterBtn">حفظ بيانات الراوتر</button>
-  <button id="fetchUsersBtn">جلب المستخدمين من الراوتر</button>
+  <button id="saveAndFetchBtn">حفظ وجلب المستخدمين</button>
 
   <div id="usersList">
     <p>لا توجد بيانات مستخدمين حتى الآن.</p>
@@ -57,84 +56,20 @@
   const portInput = document.getElementById('port');
   const usernameInput = document.getElementById('username');
   const passwordInput = document.getElementById('password');
-  const saveRouterBtn = document.getElementById('saveRouterBtn');
-  const fetchUsersBtn = document.getElementById('fetchUsersBtn');
+  const saveAndFetchBtn = document.getElementById('saveAndFetchBtn');
   const usersList = document.getElementById('usersList');
 
-  // تحميل بيانات الراوتر من localStorage أو السيرفر
-  async function loadRouterData() {
-    // جرب قراءة البيانات من localStorage أولاً
-    const localRouter = localStorage.getItem('router');
-    if (localRouter) {
-      const routerData = JSON.parse(localRouter);
-      ipInput.value = routerData.ip || '';
-      portInput.value = routerData.port || 8728;
-      usernameInput.value = routerData.username || '';
-      passwordInput.value = routerData.password || '';
-    } else {
-      // لو مفيش بيانات محليّة، جرب تجيبها من السيرفر
-      try {
-        const res = await fetch(`${API_BASE}/data`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.router) {
-            ipInput.value = data.router.ip || '';
-            portInput.value = data.router.port || 8728;
-            usernameInput.value = data.router.username || '';
-            passwordInput.value = data.router.password || '';
-            // احفظها محلياً كمان
-            localStorage.setItem('router', JSON.stringify(data.router));
-          }
-          if (data.users && data.users.length > 0) {
-            renderUsers(data.users);
-            localStorage.setItem('users', JSON.stringify(data.users));
-          }
-        }
-      } catch (err) {
-        console.error('فشل في جلب بيانات السيرفر', err);
-      }
+  // تحميل بيانات الراوتر من localStorage
+  function loadRouterFromLocal() {
+    const saved = localStorage.getItem('router');
+    if (saved) {
+      const router = JSON.parse(saved);
+      ipInput.value = router.ip || '';
+      portInput.value = router.port || 8728;
+      usernameInput.value = router.username || '';
+      passwordInput.value = router.password || '';
     }
   }
-
-  // حفظ بيانات الراوتر
-  saveRouterBtn.onclick = async () => {
-    const ip = ipInput.value.trim();
-    const port = parseInt(portInput.value) || 8728;
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
-
-    if (!ip || !username || !password) {
-      alert('يرجى ملء الحقول المطلوبة (IP، اسم المستخدم، كلمة المرور)');
-      return;
-    }
-
-    try {
-      saveRouterBtn.disabled = true;
-      saveRouterBtn.textContent = 'جارٍ الحفظ...';
-
-      const res = await fetch(`${API_BASE}/router`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ ip, port, username, password }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'فشل في الحفظ');
-      }
-
-      // مسح البيانات القديمة وحفظ الجديدة في localStorage
-      localStorage.removeItem('router');
-      localStorage.setItem('router', JSON.stringify({ ip, port, username, password }));
-
-      alert('تم حفظ بيانات الراوتر بنجاح');
-    } catch (error) {
-      alert(`حدث خطأ أثناء الحفظ: ${error.message}`);
-    } finally {
-      saveRouterBtn.disabled = false;
-      saveRouterBtn.textContent = 'حفظ بيانات الراوتر';
-    }
-  };
 
   // عرض المستخدمين
   function renderUsers(users) {
@@ -151,12 +86,26 @@
     });
   }
 
-  // جلب المستخدمين من الراوتر
-  fetchUsersBtn.onclick = async () => {
-    fetchUsersBtn.disabled = true;
-    fetchUsersBtn.textContent = 'جارٍ جلب المستخدمين...';
+  // زر حفظ + جلب
+  saveAndFetchBtn.onclick = async () => {
+    const ip = ipInput.value.trim();
+    const port = parseInt(portInput.value) || 8728;
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!ip || !username || !password) {
+      alert('يرجى ملء الحقول المطلوبة (IP، اسم المستخدم، كلمة المرور)');
+      return;
+    }
+
+    // حفظ في localStorage
+    localStorage.setItem('router', JSON.stringify({ ip, port, username, password }));
+
+    saveAndFetchBtn.disabled = true;
+    saveAndFetchBtn.textContent = 'جارٍ الحفظ والجلب...';
 
     try {
+      // إرسال للسيرفر علشان يجلب المستخدمين
       const res = await fetch(`${API_BASE}/fetch-users`);
       if (!res.ok) {
         const errData = await res.json();
@@ -165,16 +114,23 @@
       const data = await res.json();
       renderUsers(data.users);
       localStorage.setItem('users', JSON.stringify(data.users));
-      alert('تم جلب المستخدمين من الراوتر بنجاح');
+      alert('تم حفظ البيانات وجلب المستخدمين بنجاح');
     } catch (error) {
-      alert(`فشل في جلب المستخدمين: ${error.message}`);
+      alert(`فشل: ${error.message}`);
     } finally {
-      fetchUsersBtn.disabled = false;
-      fetchUsersBtn.textContent = 'جلب المستخدمين من الراوتر';
+      saveAndFetchBtn.disabled = false;
+      saveAndFetchBtn.textContent = 'حفظ وجلب المستخدمين';
     }
   };
 
-  window.onload = loadRouterData;
+  // عند تحميل الصفحة
+  window.onload = () => {
+    loadRouterFromLocal();
+    const savedUsers = localStorage.getItem('users');
+    if (savedUsers) {
+      renderUsers(JSON.parse(savedUsers));
+    }
+  };
 </script>
 
 </body>
