@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>طباعة الكروت - جميع القوالب</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 20px;
+    background: #f9fafc;
+    color: #333;
+    direction: rtl;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #004aad;
+    user-select: none;
+    font-weight: 700;
+  }
+  #userSelect {
+    display: block;
+    margin: 0 auto 30px auto;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1.8px solid #bbb;
+    max-width: 400px;
+    width: 100%;
+    cursor: pointer;
+    background-color: white;
+    transition: border-color 0.3s ease;
+  }
+  #userSelect:focus {
+    border-color: #004aad;
+    outline: none;
+    box-shadow: 0 0 8px #a2c5ff;
+  }
+  #noUsersMsg {
+    text-align: center;
+    font-size: 18px;
+    color: #888;
+    margin-top: 50px;
+  }
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(300px,1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .print-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    padding: 20px;
+    color: #222;
+    user-select: text;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .print-card h2 {
+    margin: 0 0 10px 0;
+    font-weight: 700;
+    color: #004aad;
+    font-size: 20px;
+    word-break: break-word;
+  }
+  .print-card p {
+    margin: 6px 0;
+    font-size: 16px;
+    color: #444;
+    word-break: break-word;
+    flex-grow: 1;
+  }
+  .btn-downloads {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+  button.download-btn {
+    background-color: #004aad;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+  button.download-btn:hover {
+    background-color: #002e6b;
+  }
+      /* شريط التنقل */
+    nav {
+      background-color: #004aad;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: flex-start;
+      gap: 15px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 8px 15px;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+    nav a:hover, nav a.active {
+      background-color: #003080;
+    }
+
+</style>
+
+</head>
+<body>
+
+<h1>طباعة القوالب </h1>
+  <nav>
+    <a href="index.html">لوحة التحكم</a>
+    <a href="print.html"class="active">طباعة الكروت</a>
+    <a href="templates.html">معرض القوالب</a>
+  </nav>
+
+<select id="userSelect" aria-label="اختر المستخدم">
+  <option value="">-- اختر المستخدم --</option>
+</select>
+
+<div id="noUsersMsg" style="display:none;">لا توجد بيانات مستخدمين. الرجاء جلب المستخدمين من لوحة التحكم أولاً.</div>
+
+<div class="cards-container" id="cardsContainer"></div>
+
+<script>
+  const userSelect = document.getElementById('userSelect');
+  const cardsContainer = document.getElementById('cardsContainer');
+  const noUsersMsg = document.getElementById('noUsersMsg');
+
+  // 25 قالب مع النصوص والأسلوب — استخدم {{username}}, {{ip}}, {{uptime}} كأماكن حجز
+  const templates = [
+    { id: 1, title: "القالب 1 - بسيط", html: `
+      <div style="border:1px solid #333; width:280px; padding:10px; font-family: Arial;">
+        <h2>بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 2, title: "القالب 2 - ألوان ناعمة", html: `
+      <div style="border:2px solid #5a9; background:#e8f5e9; width:280px; padding:15px; font-family: Tahoma;">
+        <h3 style="color:#2e7d32;">بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 3, title: "القالب 3 - تصميم حديث", html: `
+      <div style="border-radius:8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); width:280px; padding:20px; font-family: Verdana;">
+        <h2 style="color:#00695c;">بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 4, title: "القالب 4 - إطار بسيط", html: `
+      <div style="border: 2px dashed #555; width:280px; padding:15px; font-family: 'Courier New', Courier, monospace;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 5, title: "القالب 5 - تصميم كلاسيكي", html: `
+      <div style="border-bottom: 3px solid #444; width:280px; padding:15px; font-family: Georgia, serif;">
+        <h3 style="color:#222;">بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 6, title: "القالب 6 - بطاقة مع خلفية ملونة", html: `
+      <div style="background:#cce5ff; border-radius:5px; width:280px; padding:15px; font-family: Arial;">
+        <h2 style="color:#004085;">بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 7, title: "القالب 7 - تصميم بسيط بظل", html: `
+      <div style="box-shadow: 2px 2px 10px rgba(0,0,0,0.1); width:280px; padding:15px; font-family: Verdana;">
+        <h3 style="color:#333;">بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 8, title: "القالب 8 - إطار مع تدرج لوني", html: `
+      <div style="border: 1px solid #888; background: linear-gradient(to right, #f0f0f0, #d9d9d9); width:280px; padding:15px; font-family: Arial;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 9, title: "القالب 9 - بطاقة بخط مائل", html: `
+      <div style="border: 1px solid #aaa; width:280px; padding:15px; font-family: 'Comic Sans MS', cursive;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 10, title: "القالب 10 - تصميم شفاف", html: `
+      <div style="border: 1px solid #bbb; background: rgba(255,255,255,0.8); width:280px; padding:15px; font-family: Arial;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 11, title: "القالب 11 - تصميم بسيط بالأزرق الداكن", html: `
+      <div style="background:#002147; color:#fff; width:280px; padding:15px; font-family: Arial;">
+        <h2>بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 12, title: "القالب 12 - تصميم مع إطار ذهبي", html: `
+      <div style="border: 2px solid goldenrod; width:280px; padding:15px; font-family: Georgia, serif;">
+        <h3 style="color: goldenrod;">بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 13, title: "القالب 13 - بطاقة بخط مزخرف", html: `
+      <div style="border: 1px solid #555; width:280px; padding:15px; font-family: 'Brush Script MT', cursive;">
+        <h2>بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 14, title: "القالب 14 - تصميم بسيط مع ظل", html: `
+      <div style="box-shadow: 0 0 8px rgba(0,0,0,0.15); width:280px; padding:15px; font-family: Arial;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 15, title: "القالب 15 - بطاقة بخط سميك", html: `
+      <div style="border: 2px solid #444; width:280px; padding:15px; font-family: Arial; font-weight: bold;">
+        <h2>بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 16, title: "القالب 16 - تصميم حديث مع لون خلفية فاتح", html: `
+      <div style="background:#f0f4f8; border-radius:6px; width:280px; padding:15px; font-family: 'Segoe UI', Tahoma;">
+        <h2 style="color:#1a73e8;">بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 17, title: "القالب 17 - بطاقة بإطار منقط", html: `
+      <div style="border: 2px dotted #555; width:280px; padding:15px; font-family: Arial;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 18, title: "القالب 18 - تصميم بسيط باللون الأحمر", html: `
+      <div style="border: 1px solid #d32f2f; background:#ffebee; width:280px; padding:15px; font-family: Arial;">
+        <h3 style="color:#b71c1c;">بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 19, title: "القالب 19 - بطاقة بخط مائل وملون", html: `
+      <div style="border: 1px solid #888; width:280px; padding:15px; font-family: 'Comic Sans MS', cursive;">
+        <h3 style="color:#00796b;"><em>بطاقة المستخدم</em></h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 20, title: "القالب 20 - بطاقة مع ظل ناعم", html: `
+      <div style="box-shadow: 0 4px 12px rgba(0,0,0,0.1); width:280px; padding:15px; font-family: Arial;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 21, title: "القالب 21 - تصميم بسيط مع حدود مستديرة", html: `
+      <div style="border: 1px solid #ccc; border-radius: 10px; width:280px; padding:15px; font-family: Verdana;">
+        <h3>بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 22, title: "القالب 22 - بطاقة مع خلفية فاتحة وكتابة داكنة", html: `
+      <div style="background:#fafafa; border:1px solid #ddd; width:280px; padding:15px; font-family: Arial;">
+        <h2 style="color:#222;">بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+{ id: 23, title: "القالب 23 - بطاقة بخط بسيط مع تباعد جيد", html: `
+  <div style="border:1px solid #aaa; width:280px; padding:20px; font-family: Tahoma;">
+    <h3>بطاقة المستخدم</h3>
+    <p style="margin: 5px 0;">الاسم: {{username}}</p>
+    <p style="margin: 5px 0;">IP: {{ip}}</p>
+    <p style="margin: 5px 0;">مدة الاتصال: {{uptime}}</p>
+  </div>` },
+    { id: 24, title: "القالب 24 - بطاقة مع تأثير انحناء للزاوية", html: `
+      <div style="border:1px solid #666; border-radius:0 20px 0 20px; width:280px; padding:15px; font-family: Arial;">
+        <h2>بطاقة المستخدم</h2>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` },
+    { id: 25, title: "القالب 25 - بطاقة مع لون خلفية وردي فاتح", html: `
+      <div style="background:#ffe6f0; border:1px solid #ff99c8; width:280px; padding:15px; font-family: 'Segoe UI', Tahoma;">
+        <h3 style="color:#d81b60;">بطاقة المستخدم</h3>
+        <p>الاسم: {{username}}</p>
+        <p>IP: {{ip}}</p>
+        <p>مدة الاتصال: {{uptime}}</p>
+      </div>` }
+  ];
+
+  // جلب المستخدمين من localStorage
+  function getUsers() {
+    try {
+      const data = localStorage.getItem('users');
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  // تحديث قائمة اختيار المستخدمين
+  function populateUserSelect() {
+    const users = getUsers();
+    userSelect.innerHTML = '<option value="">-- اختر المستخدم --</option>';
+    if(users.length === 0) {
+      noUsersMsg.style.display = 'block';
+      cardsContainer.innerHTML = '';
+      return;
+    }
+    noUsersMsg.style.display = 'none';
+    users.forEach((user, idx) => {
+      const option = document.createElement('option');
+      option.value = idx;
+      option.textContent = user.username || `مستخدم ${idx+1}`;
+      userSelect.appendChild(option);
+    });
+  }
+
+  // استبدال النصوص داخل قالب القالب ببيانات المستخدم
+  function fillTemplate(templateHtml, user) {
+    return templateHtml
+      .replace(/{{username}}/g, user.username || '')
+      .replace(/{{ip}}/g, user.ip || '')
+      .replace(/{{uptime}}/g, user.uptime || '');
+  }
+
+  // إنشاء العنصر DOM لكل قالب مع بيانات المستخدم
+  function createCard(template, user) {
+    const div = document.createElement('div');
+    div.className = 'print-card';
+
+    // بناء المحتوى HTML مع بيانات المستخدم
+    const filledHtml = fillTemplate(template.html, user);
+
+    // حاوية القالب (مهم لhtml2canvas)
+    const cardContent = document.createElement('div');
+    cardContent.innerHTML = filledHtml;
+    div.appendChild(cardContent);
+
+    // أزرار تحميل PNG و PDF
+    const btnContainer = document.createElement('div');
+    btnContainer.className = 'btn-downloads';
+
+    const btnPng = document.createElement('button');
+    btnPng.className = 'download-btn';
+    btnPng.textContent = 'تحميل PNG';
+    btnPng.onclick = () => downloadPNG(cardContent, `${template.title} - ${user.username}.png`);
+
+    const btnPdf = document.createElement('button');
+    btnPdf.className = 'download-btn';
+    btnPdf.textContent = 'تحميل PDF';
+    btnPdf.onclick = () => downloadPDF(cardContent, `${template.title} - ${user.username}.pdf`);
+
+    btnContainer.appendChild(btnPng);
+    btnContainer.appendChild(btnPdf);
+
+    div.appendChild(btnContainer);
+
+    return div;
+  }
+
+  // تحميل الصورة PNG باستخدام html2canvas
+  function downloadPNG(element, filename) {
+    html2canvas(element, {scale:2}).then(canvas => {
+      canvas.toBlob(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }, 'image/png');
+    });
+  }
+
+  // تحميل PDF باستخدام jsPDF
+  async function downloadPDF(element, filename) {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: [element.offsetWidth, element.offsetHeight]
+    });
+
+    // نأخذ صورة من العنصر
+    const canvas = await html2canvas(element, {scale:2});
+    const imgData = canvas.toDataURL('image/png');
+
+    // نضيف الصورة إلى صفحة PDF بحجم مناسب
+    pdf.addImage(imgData, 'PNG', 0, 0, element.offsetWidth, element.offsetHeight);
+
+    pdf.save(filename);
+  }
+
+  // عند اختيار مستخدم، نعرض القوالب
+  userSelect.addEventListener('change', () => {
+    const idx = userSelect.value;
+    cardsContainer.innerHTML = '';
+    if(idx === '') return;
+    const users = getUsers();
+    const user = users[idx];
+
+    templates.forEach(template => {
+      const card = createCard(template, user);
+      cardsContainer.appendChild(card);
+    });
+  });
+
+  // تحميل المستخدمين عند فتح الصفحة
+  populateUserSelect();
+
+</script>
+
+</body>
+</html>

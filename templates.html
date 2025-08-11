@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>معرض القوالب</title>
+  <style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  background: #f0f4f8;
+  color: #333;
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* شريط التنقل */
+nav {
+  background-color: #004aad;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 15px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  padding: 0;
+  margin: 0;
+  gap: 15px;
+}
+
+nav ul li {
+  /* يمكن إضافة تأثيرات هنا إذا لزم */
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 15px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+nav a:hover, nav a.active {
+  background-color: #003080;
+}
+
+h1 {
+  margin-bottom: 25px;
+  font-weight: 700;
+  color: #004aad;
+  user-select: none;
+}
+
+/* شبكة عرض القوالب */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* كل قالب مصغر */
+.template-thumb {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 190px; /* لاحتواء النص */
+}
+
+.template-thumb:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  transform: translateY(-4px);
+}
+
+.template-thumb > div {
+  /* داخل المربع */
+  width: 280px;
+  max-width: 100%;
+  height: 160px;
+  overflow: hidden;
+}
+
+/* عنوان القالب */
+.template-title {
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #004aad;
+  text-align: center;
+}
+
+/* النافذة المنبثقة (المودال) */
+#modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+#modalContent {
+  background: white;
+  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+#modalContent button#closeBtn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #004aad;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#modalContent button#closeBtn:hover {
+  background: #003080;
+}
+
+#fullTemplate {
+  margin-top: 40px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+  user-select: text;
+  min-width: 280px;
+  max-width: 700px;
+}
+.template-thumb {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 190px; /* يمكن تعديله حسب الحاجة */
+  width: 300px; /* يتناسب مع عرض القالب 280 + padding */
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.template-thumb > div {
+  width: 100% !important;
+  height: auto !important;
+  box-sizing: border-box;
+  border: none !important; /* إذا كان هناك حدود خارجية مسبقة */
+}
+
+/* داخل القوالب: ضبط عرض الحاوية ليكون 100% */
+.template-thumb > div > div {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* إزالة transform scale */
+#templatesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  justify-items: center; /* لمحاذاة كل كارت في المنتصف داخل الخلية */
+}
+  h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #004aad;
+    user-select: none;
+    font-weight: 700;
+  }
+  </style>
+</head>
+<body>
+
+<h1>معرض القوالب</h1>
+  <nav>  
+    <a href="index.html" >لوحة التحكم</a>  
+    <a href="print.html">طباعة الكروت</a>  
+    <a href="templates.html"  
+class="active">معرض القوالب</a>  
+  </nav>  
+<div class="grid" id="templatesGrid"></div>
+
+<!-- نافذة عرض القالب كامل -->
+<div id="modal">
+  <div id="modalContent">
+    <button id="closeBtn">إغلاق</button>
+    <div id="fullTemplate"></div>
+  </div>
+</div>
+
+<script>
+ const templates = [
+  {
+    id: 1,
+    title: "القالب 1 - بسيط",
+    html: `
+<div style="border:1px solid #333; width:280px; padding:10px; font-family: Arial;">
+  <h2 style="margin:0 0 10px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 2,
+    title: "القالب 2 - ألوان ناعمة",
+    html: `
+<div style="border:2px solid #5a9; background:#e8f5e9; width:280px; padding:15px; font-family: Tahoma;">
+  <h3 style="color:#2e7d32; margin:0 0 8px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 3,
+    title: "القالب 3 - تصميم حديث",
+    html: `
+<div style="border-radius:8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); width:280px; padding:20px; font-family: Verdana;">
+  <h2 style="color:#00695c; margin:0 0 12px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 4,
+    title: "القالب 4 - إطار بسيط",
+    html: `
+<div style="border: 2px dashed #555; width:280px; padding:15px; font-family: 'Courier New', Courier, monospace;">
+  <h3 style="margin:0 0 10px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 5,
+    title: "القالب 5 - تصميم كلاسيكي",
+    html: `
+<div style="border-bottom: 3px solid #444; width:280px; padding:15px; font-family: Georgia, serif;">
+  <h3 style="margin:0 0 12px 0; color:#222;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 6,
+    title: "القالب 6 - بطاقة مع خلفية ملونة",
+    html: `
+<div style="background:#cce5ff; border-radius:5px; width:280px; padding:15px; font-family: Arial;">
+  <h2 style="color:#004085; margin:0 0 10px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 7,
+    title: "القالب 7 - تصميم بسيط بظل",
+    html: `
+<div style="box-shadow: 2px 2px 10px rgba(0,0,0,0.1); width:280px; padding:15px; font-family: Verdana;">
+  <h3 style="margin:0 0 10px 0; color:#333;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 8,
+    title: "القالب 8 - إطار مع تدرج لوني",
+    html: `
+<div style="border: 1px solid #888; background: linear-gradient(to right, #f0f0f0, #d9d9d9); width:280px; padding:15px; font-family: Arial;">
+  <h3 style="margin:0 0 12px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 9,
+    title: "القالب 9 - بطاقة بخط مائل",
+    html: `
+<div style="border: 1px solid #aaa; width:280px; padding:15px; font-family: 'Comic Sans MS', cursive;">
+  <h3 style="margin:0 0 10px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 10,
+    title: "القالب 10 - تصميم شفاف",
+    html: `
+<div style="border: 1px solid #bbb; background: rgba(255,255,255,0.8); width:280px; padding:15px; font-family: Arial;">
+  <h3 style="margin:0 0 12px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 11,
+    title: "القالب 11 - تصميم بسيط بالأزرق الداكن",
+    html: `
+<div style="background:#002147; color:#fff; width:280px; padding:15px; font-family: Arial;">
+  <h2 style="margin:0 0 10px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 12,
+    title: "القالب 12 - تصميم مع إطار ذهبي",
+    html: `
+<div style="border: 2px solid goldenrod; width:280px; padding:15px; font-family: Georgia, serif;">
+  <h3 style="margin:0 0 10px 0; color: goldenrod;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 13,
+    title: "القالب 13 - بطاقة بخط مزخرف",
+    html: `
+<div style="border: 1px solid #555; width:280px; padding:15px; font-family: 'Brush Script MT', cursive;">
+  <h2 style="margin:0 0 10px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 14,
+    title: "القالب 14 - تصميم بسيط مع ظل",
+    html: `
+<div style="box-shadow: 0 0 8px rgba(0,0,0,0.15); width:280px; padding:15px; font-family: Arial;">
+  <h3 style="margin:0 0 10px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 15,
+    title: "القالب 15 - بطاقة بخط سميك",
+    html: `
+<div style="border: 2px solid #444; width:280px; padding:15px; font-family: Arial; font-weight: bold;">
+  <h2 style="margin:0 0 10px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 16,
+    title: "القالب 16 - تصميم حديث مع لون خلفية فاتح",
+    html: `
+<div style="background:#f0f4f8; border-radius:6px; width:280px; padding:15px; font-family: 'Segoe UI', Tahoma;">
+  <h2 style="color:#1a73e8; margin:0 0 10px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 17,
+    title: "القالب 17 - بطاقة بإطار منقط",
+    html: `
+<div style="border: 2px dotted #555; width:280px; padding:15px; font-family: Arial;">
+  <h3 style="margin:0 0 10px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 18,
+    title: "القالب 18 - تصميم بسيط باللون الأحمر",
+    html: `
+<div style="border: 1px solid #d32f2f; background:#ffebee; width:280px; padding:15px; font-family: Arial;">
+  <h3 style="color:#b71c1c; margin:0 0 10px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 19,
+    title: "القالب 19 - بطاقة بخط مائل وملون",
+    html: `
+<div style="border: 1px solid #888; width:280px; padding:15px; font-family: 'Comic Sans MS', cursive;">
+  <h3 style="margin:0 0 10px 0; color:#00796b;"><em>بطاقة المستخدم</em></h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 20,
+    title: "القالب 20 - بطاقة مع ظل ناعم",
+    html: `
+<div style="box-shadow: 0 4px 12px rgba(0,0,0,0.1); width:280px; padding:15px; font-family: Arial;">
+  <h3 style="margin:0 0 12px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 21,
+    title: "القالب 21 - تصميم بسيط مع حدود مستديرة",
+    html: `
+<div style="border: 1px solid #ccc; border-radius: 10px; width:280px; padding:15px; font-family: Verdana;">
+  <h3 style="margin:0 0 10px 0;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 22,
+    title: "القالب 22 - بطاقة مع خلفية فاتحة وكتابة داكنة",
+    html: `
+<div style="background:#fafafa; border:1px solid #ddd; width:280px; padding:15px; font-family: Arial;">
+  <h2 style="margin:0 0 10px 0; color:#222;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 23,
+    title: "القالب 23 - بطاقة بخط بسيط مع تباعد جيد",
+    html: `
+<div style="border:1px solid #aaa; width:280px; padding:20px; font-family: Tahoma;">
+  <h3 style="margin:0 0 15px 0;">بطاقة المستخدم</h3>
+  <p style="margin: 5px 0;">الاسم: {{username}}</p>
+  <p style="margin: 5px 0;">IP: {{ip}}</p>
+  <p style="margin: 5px 0;">مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 24,
+    title: "القالب 24 - بطاقة مع تأثير انحناء للزاوية",
+    html: `
+<div style="border:1px solid #666; border-radius:0 20px 0 20px; width:280px; padding:15px; font-family: Arial;">
+  <h2 style="margin:0 0 10px 0;">بطاقة المستخدم</h2>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  },
+  {
+    id: 25,
+    title: "القالب 25 - بطاقة مع لون خلفية وردي فاتح",
+    html: `
+<div style="background:#ffe6f0; border:1px solid #ff99c8; width:280px; padding:15px; font-family: 'Segoe UI', Tahoma;">
+  <h3 style="margin:0 0 10px 0; color:#d81b60;">بطاقة المستخدم</h3>
+  <p>الاسم: {{username}}</p>
+  <p>IP: {{ip}}</p>
+  <p>مدة الاتصال: {{uptime}}</p>
+</div>`
+  }
+]; 
+  const grid = document.getElementById('templatesGrid');
+  const modal = document.getElementById('modal');
+  const fullTemplate = document.getElementById('fullTemplate');
+  const closeBtn = document.getElementById('closeBtn');
+
+  // حجم المربعات المصغرة
+  const thumbWidth = 150;
+  const thumbHeight = 150;
+
+  templates.forEach(tpl => {
+    const thumb = document.createElement('div');
+    thumb.className = 'template-thumb';
+
+    // إنشاء div داخلي بالقالب الأصلي
+    const innerDiv = document.createElement('div');
+    innerDiv.innerHTML = tpl.html;
+
+    // حساب مقياس التكبير/تصغير بحيث القالب يظهر كاملاً داخل المربع 150x150
+    const scaleX = thumbWidth / 280; // القالب الأصلي عرض 280px
+    const scaleY = thumbHeight / 160; // القالب الأصلي ارتفاع 160px
+    const scale = Math.min(scaleX, scaleY);
+
+    innerDiv.style.transform = `scale(${scale})`;
+    innerDiv.style.transformOrigin = 'top left';
+
+    thumb.appendChild(innerDiv);
+
+    // عنوان القالب تحت المصغر
+    const titleP = document.createElement('p');
+    titleP.className = 'template-title';
+    titleP.textContent = tpl.title;
+    thumb.appendChild(titleP);
+
+    thumb.onclick = () => {
+      fullTemplate.innerHTML = tpl.html;
+      modal.style.display = 'flex';
+    };
+
+    grid.appendChild(thumb);
+  });
+
+  closeBtn.onclick = () => {
+    modal.style.display = 'none';
+    fullTemplate.innerHTML = '';
+  };
+
+  modal.onclick = e => {
+    if(e.target === modal) {
+      modal.style.display = 'none';
+      fullTemplate.innerHTML = '';
+    }
+  };
+</script>
+
+</body>
+</html>
